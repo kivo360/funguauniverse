@@ -4,7 +4,7 @@
 
 Universal Tools to run the Funguana Pipeline. These functions are not extemely critical to the full application.
 
+---
 
-- [x] Finish my changes
-- [ ] Push my commits to GitHub
-- [ ] Open a pull request
+- [x] Add basic code
+- [ ] Write documents on the use cases
