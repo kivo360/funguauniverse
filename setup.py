@@ -84,7 +84,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     py_modules=["funtoolbox"],
-    install_requires=['pytest', 'scipy', 'numpy', 'pandas', 'dask[complete]', 'ta-lib', 'loguru', 'spaceman'], 
+    install_requires=['pytest', 'scipy', 'numpy', 'pandas', 'dask[complete]', 'ta-lib', 'loguru', 'spaceman', 'featman'], 
     packages=find_packages(exclude=['scripts']),
     classifiers=[
         "Programming Language :: Python :: 3",
