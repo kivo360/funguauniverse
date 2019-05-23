@@ -76,14 +76,14 @@ class UploadCommand(Command):
 
 
 setup(
-    name="funguatoolbox",
+    name="funguauniverse",
     version="0.0.1",
     author="Kevin Hill",
     author_email="kah.kevin.hill@gmail.com",
-    description="A set of class tools to run the Funguana Pipeline",
+    description="A set of class tools to run the Funguana Pipeline. Many irrelelavent parts",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    py_modules=["funtoolbox"],
+    py_modules=["funguauniverse"],
     install_requires=['pytest', 'scipy', 'numpy', 'pandas', 'dask[complete]', 'ta-lib', 'loguru', 'spaceman', 'featman'], 
     packages=find_packages(exclude=['scripts']),
     classifiers=[
@@ -92,5 +92,4 @@ setup(
         "Operating System :: OS Independent",
     ],
     cmdclass={"upload": UploadCommand, "test": PyTest},
-    
 )

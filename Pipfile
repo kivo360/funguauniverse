@@ -7,6 +7,7 @@ name = "pypi"
 loguru = "*"
 crayons = "*"
 funguatoolbox = {editable = true, path = "."}
+funguauniverse = {editable = true, path = "."}
 
 [dev-packages]
 "autopep8" = "*"
