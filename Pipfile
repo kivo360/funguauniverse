@@ -8,6 +8,9 @@ loguru = "*"
 crayons = "*"
 funguatoolbox = {editable = true, path = "."}
 funguauniverse = {editable = true, path = "."}
+sklearn = "*"
+flask = "*"
+gunicorn = "*"
 
 [dev-packages]
 "autopep8" = "*"
