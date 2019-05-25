@@ -11,6 +11,7 @@ funguauniverse = {editable = true, path = "."}
 sklearn = "*"
 flask = "*"
 gunicorn = "*"
+prometheus-client = "*"
 
 [dev-packages]
 "autopep8" = "*"
