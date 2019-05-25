@@ -12,6 +12,7 @@ sklearn = "*"
 flask = "*"
 gunicorn = "*"
 prometheus-client = "*"
+requests = "*"
 
 [dev-packages]
 "autopep8" = "*"

@@ -1,43 +1,42 @@
-# Create a memorization for the general sklearn regressor type
-# Use to run multiple sessions of regression at once
 import time
 import uuid
 import random
 import numpy as np
-from multiprocessing.managers import BaseManager
+
 
 from funguauniverse import MemoizeAndOperate
+from funguauniverse import start_service
 from sklearn.linear_model import PassiveAggressiveRegressor
 
 from sklearn.datasets import make_regression
 
 
 class MemoryPassiveRegressor(MemoizeAndOperate):
+    """ A class for online learning using the passive aggressive regressor """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def initialize(self, query:dict, regressor_type="regressor"):
+    def initialize(self, query:dict, **kwargs):
         existing_model = self.load(query)
         if existing_model is None:
             self.set_item(query, PassiveAggressiveRegressor(
-                max_iter=100), overwrite=False)
+                max_iter=1000), overwrite=False)
         else:
-            print("Loaded Model")
             self.set_item(query, existing_model, overwrite=False)
             
-
-    def train(self, query: dict, X, y):
+    def train(self, query: dict, X, y, **kwargs):
         # Partially train the passive aggressive regressor
         try:
             regressor = self.get_item(query)
             regressor.partial_fit(X, y)
             self.set_item(query, regressor, overwrite=True)
+            return "DONE"
         except Exception as e:
             print(str(e))
             pass
         
     
-    def predict(self, query:dict, X):
+    def predict(self, query:dict, X, **kwargs):
         # Predict the score of the regression algorithm for the data `x`
         try:
             regressor = self.get_item(query)
@@ -46,15 +45,14 @@ class MemoryPassiveRegressor(MemoizeAndOperate):
         except Exception as e:
             return []
         
-
-    def score(self, query, X, y):
+    def score(self, query, X, y, **kwargs):
         # Generate the score for the model in X and Y
         try:
             regressor = self.get_item(query)
             score = regressor.score(X, y)
             return score
         except Exception as e:
-            print(e)
+            print(str(e))
             return 0.0
     
     def background_operation(self):
@@ -66,7 +64,6 @@ class MemoryPassiveRegressor(MemoizeAndOperate):
             self.save(b64key, self.reg_dict[rk])
             time.sleep(0.5)
             # self.load(b64key)
-            print("Saving Models")
             # We would use this dict to load the most recent model.
             # logger.info(f"Processing Keys: {rk}", enqueue=True)
     def save(self, query:dict, obj):
@@ -88,48 +85,49 @@ def rolling_window(a, window):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-class MyManager(BaseManager):
-    pass
-
-
-
 if __name__ == "__main__":
-    
+    memes = MemoryPassiveRegressor()
+    print(memes)
+    start_service(memes, "localhost", 5581)
+
+
+
+# Create something to run test app
     # mem_regressor.initialize()
     # mem_regressor.train(query, trainX, trainY) # Assume the default is PassiveAggressiveRegressor
     # mem_regressor.test(query, textX, testY)
     # mem_regressor.predict(query, data)
-    from sklearn.model_selection import train_test_split
-    base_fake_model = query_obj = {
-        "type": "fakemodel",
-        "coin": "BTC_USD",
-        "eid": uuid.uuid4().hex
-    }
-    mem_regressor = MemoryPassiveRegressor()
-    MyManager.register('Maths', MemoryPassiveRegressor)
-    with MyManager() as manager:
-        maths = manager.Maths()
-        print(maths)
+    # from sklearn.model_selection import train_test_split
+    # base_fake_model = query_obj = {
+    #     "type": "fakemodel",
+    #     "coin": "BTC_USD",
+    #     "eid": uuid.uuid4().hex
+    # }
+    # mem_regressor = MemoryPassiveRegressor()
+    # MyManager.register('Maths', MemoryPassiveRegressor)
+    # with MyManager() as manager:
+    #     maths = manager.Maths()
+    #     print(maths)
 
-    mem_regressor.initialize(base_fake_model)
-    # index = 0
-    X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
+    # mem_regressor.initialize(base_fake_model)
+    # # index = 0
+    # X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
     
-    splitsX = np.split(X, 4)
-    splitsy = np.split(y, 4)
-    # print(splitsX)
+    # splitsX = np.split(X, 4)
+    # splitsy = np.split(y, 4)
+    # # print(splitsX)
 
-    for _ in range(len(splitsX)):
-        _X = splitsX[_]
-        _y = splitsy[_]
-        X_train, X_test, y_train, y_test = train_test_split(
-            _X, _y, test_size=0.1, random_state=0)
-        mem_regressor.train(base_fake_model, X_train, y_train)
-        score = mem_regressor.score(base_fake_model, X_test, y_test)
-        # print(score)
+    # for _ in range(len(splitsX)):
+    #     _X = splitsX[_]
+    #     _y = splitsy[_]
+    #     X_train, X_test, y_train, y_test = train_test_split(
+    #         _X, _y, test_size=0.1, random_state=0)
+    #     mem_regressor.train(base_fake_model, X_train, y_train)
+    #     score = mem_regressor.score(base_fake_model, X_test, y_test)
+    #     # print(score)
         
-        prediction = mem_regressor.predict(base_fake_model, X_test)
-        print(prediction)
+    #     prediction = mem_regressor.predict(base_fake_model, X_test)
+    #     print(prediction)
         # print(y_train)
 
     
