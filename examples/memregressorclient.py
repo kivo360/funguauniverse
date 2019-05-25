@@ -64,7 +64,7 @@ if __name__ == "__main__":
             _X, _y, test_size=0.1, random_state=0)
         client.train(base_fake_model, X_train, y_train)
         score = client.score(base_fake_model, X_test, y_test)
-        print(score)
+        # print(score)
 
-        # prediction = client.predict(base_fake_model, X_test)
-        # print(prediction)
+        prediction = client.predict(base_fake_model, X_test)
+        print(prediction.get("data", None))
