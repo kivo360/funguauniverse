@@ -21,6 +21,7 @@ class MemoizeAndOperate(StoreItem):
         self.interval = kwargs.get("interval", 3)
         self.reg_dict = {}
         self.timestamp_record = {}
+        self.query_lookup_table = {}
         self.bgprocess = threading.Thread(target=self.run, name='bgprocess', daemon=True)
         self.bgprocess.start()
         self.space = Spaceman()
@@ -32,7 +33,7 @@ class MemoizeAndOperate(StoreItem):
     def set_item(self, query:dict, item, **kwargs):
         self.filter_query(query)
         is_overwrite = kwargs.get("overwrite", False)
-        storage_string = self.dict_to_b64(query)
+        storage_string = self.hash_dict(query)
         # Add feature to check if we should overwrite
         if is_overwrite == True:
             self.reg_dict[storage_string] = item
@@ -43,10 +44,19 @@ class MemoizeAndOperate(StoreItem):
         
     def get_item(self, query_dict:dict):
         self.filter_query(query_dict)
-        storage_string = self.dict_to_b64(query_dict)
+        storage_string = self.hash_dict(query_dict)
         item = self.reg_dict.get(storage_string, None)
         return item
     
+    def hash_dict(self, query_dict:dict):
+        qhash = hash(frozenset(query_dict.items()))
+        sqhash = str(qhash)
+        self.query_lookup_table[sqhash] = query_dict
+        return sqhash
+    
+    def query_by_hash(self, _hash):
+        query_dict = self.query_lookup_table.get(_hash, None)
+        return query_dict
 
     def dict_to_b64(self, query_dict:dict):
         qstring = str(query_dict)
@@ -64,7 +74,7 @@ class MemoizeAndOperate(StoreItem):
         reg_keys = list(self.reg_dict.keys())
         for rk in reg_keys:
             latest_update = time.time()
-            self.timestamp_record[rk] = latest_update
+            # self.timestamp_record[rk] = latest_update
             b64key = self.b64_to_dict(rk)
             # We would use this dict to load the most recent model. 
             logger.info(f"Processing Keys: {rk}", enqueue=True)

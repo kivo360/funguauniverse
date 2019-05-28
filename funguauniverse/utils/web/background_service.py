@@ -39,7 +39,7 @@ def _make_handler(external_env):
             keywords = args["kwargs"]
             response = {}
 
-            print(args)
+            # print(args)
             # Create a method that allows us to determine executed command and associated action. 
             # Perhaps create a parser for this 
             if hasattr(external_env, command):
