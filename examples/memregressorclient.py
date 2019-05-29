@@ -51,12 +51,12 @@ if __name__ == "__main__":
         "coin": "BTC_USD",
         "eid": uuid.uuid4().hex
     }
-    # r = client.train()
+
     X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
     splitsX = np.split(X, 4)
     splitsy = np.split(y, 4)
-    # print(splitsX)
     client.initialize(base_fake_model)
+
     for _ in range(len(splitsX)):
         _X = splitsX[_]
         _y = splitsy[_]

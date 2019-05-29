@@ -7,6 +7,7 @@ import threading
 from funguauniverse import StoreItem
 from loguru import logger
 from spaceman import Spaceman
+from hashlib import sha1
 config = {
     "handlers": [
         {"sink": sys.stdout, "format": "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"},
@@ -49,10 +50,10 @@ class MemoizeAndOperate(StoreItem):
         return item
     
     def hash_dict(self, query_dict:dict):
-        qhash = hash(frozenset(query_dict.items()))
-        sqhash = str(qhash)
-        self.query_lookup_table[sqhash] = query_dict
-        return sqhash
+        # Updated hash for consistency between runs
+        qhash = sha1(repr(sorted(query_dict.items())).encode()).hexdigest()
+        self.query_lookup_table[qhash] = query_dict
+        return qhash
     
     def query_by_hash(self, _hash):
         query_dict = self.query_lookup_table.get(_hash, None)
