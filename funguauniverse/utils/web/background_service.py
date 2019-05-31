@@ -7,12 +7,10 @@ import traceback
 
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
+from funguauniverse.utils.web.threadpoolmixin import ThreadPoolMixIn
 
 
-
-
-
-class ThreadedService(ThreadingMixIn, HTTPServer):
+class ThreadedService(ThreadPoolMixIn, HTTPServer):
     def __init__(self, fun_service, address, port):
         # Create a service that
         handler = _make_handler(fun_service)

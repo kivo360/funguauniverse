@@ -52,19 +52,24 @@ if __name__ == "__main__":
         "eid": uuid.uuid4().hex
     }
 
-    X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
-    splitsX = np.split(X, 4)
-    splitsy = np.split(y, 4)
-    client.initialize(base_fake_model)
+    start = time.time()
+    for _ in range(5):
+    
+        X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
+        splitsX = np.split(X, 4)
+        splitsy = np.split(y, 4)
+        client.initialize(base_fake_model)
 
-    for _ in range(len(splitsX)):
-        _X = splitsX[_]
-        _y = splitsy[_]
-        X_train, X_test, y_train, y_test = train_test_split(
-            _X, _y, test_size=0.1, random_state=0)
-        client.train(base_fake_model, X_train, y_train)
-        score = client.score(base_fake_model, X_test, y_test)
-        # print(score)
+        for _ in range(len(splitsX)):
+            _X = splitsX[_]
+            _y = splitsy[_]
+            X_train, X_test, y_train, y_test = train_test_split(
+                _X, _y, test_size=0.1, random_state=0)
+            client.train(base_fake_model, X_train, y_train)
+            score = client.score(base_fake_model, X_test, y_test)
+            # print(score)
 
-        prediction = client.predict(base_fake_model, X_test)
-        print(prediction.get("data", None))
+            prediction = client.predict(base_fake_model, X_test)
+            print(prediction.get("data", None))
+    end = time.time()
+    print(end-start)
