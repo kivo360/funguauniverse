@@ -17,55 +17,62 @@ config = {
 logger.configure(**config)
 
 
-class MemoizeAndOperate(StoreItem):
+class MemoizeAndOperate(StoreItem, threading.Thread):
     def __init__(self, **kwargs):
+        threading.Thread.__init__(self)
+        self.lock = threading.Lock()
         self.interval = kwargs.get("interval", 3)
         self.reg_dict = {}
         self.timestamp_record = {}
         self.query_lookup_table = {}
-        self.bgprocess = threading.Thread(target=self.run, name='bgprocess', daemon=True)
+        self.bgprocess = threading.Thread(
+            target=self._run, name='bgprocess', daemon=True)
         self.bgprocess.start()
         self.space = Spaceman()
+        self.daemon = True
 
-    def filter_query(self, query:dict):
+    def filter_query(self, query: dict):
         assert query.get("type") is not None
         assert isinstance(query['type'], str)
-    
-    def set_item(self, query:dict, item, **kwargs):
-        self.filter_query(query)
-        is_overwrite = kwargs.get("overwrite", False)
-        storage_string = self.hash_dict(query)
-        # Add feature to check if we should overwrite
-        if is_overwrite == True:
-            self.reg_dict[storage_string] = item
-            return
 
-        if self.reg_dict.get(storage_string, None) is None:
-            self.reg_dict[storage_string] = item
-        
-    def get_item(self, query_dict:dict):
+    def set_item(self, query: dict, item, **kwargs):
+        self.filter_query(query)
+
+        with self.lock:
+            is_overwrite = kwargs.get("overwrite", False)
+            storage_string = self.hash_dict(query)
+            # Add feature to check if we should overwrite
+            if is_overwrite == True:
+                self.reg_dict[storage_string] = item
+                return
+
+            if self.reg_dict.get(storage_string, None) is None:
+                self.reg_dict[storage_string] = item
+
+    def get_item(self, query_dict: dict):
         self.filter_query(query_dict)
-        storage_string = self.hash_dict(query_dict)
-        item = self.reg_dict.get(storage_string, None)
-        return item
-    
-    def hash_dict(self, query_dict:dict):
+        with self.lock:
+            storage_string = self.hash_dict(query_dict)
+            item = self.reg_dict.get(storage_string, None)
+            return item
+
+    def hash_dict(self, query_dict: dict):
         # Updated hash for consistency between runs
         qhash = sha1(repr(sorted(query_dict.items())).encode()).hexdigest()
         self.query_lookup_table[qhash] = query_dict
         return qhash
-    
+
     def query_by_hash(self, _hash):
         query_dict = self.query_lookup_table.get(_hash, None)
         return query_dict
 
-    def dict_to_b64(self, query_dict:dict):
+    def dict_to_b64(self, query_dict: dict):
         qstring = str(query_dict)
         encoded = qstring.encode()
         byteb64 = base64.b64encode(encoded)
         return byteb64.decode("utf-8")
 
-    def b64_to_dict(self, bstring:str):
+    def b64_to_dict(self, bstring: str):
         bstring_decoded = bstring.encode()
         decoded_base = base64.b64decode(bstring_decoded)
         decoded_string = decoded_base.decode()
@@ -77,19 +84,22 @@ class MemoizeAndOperate(StoreItem):
             latest_update = time.time()
             # self.timestamp_record[rk] = latest_update
             b64key = self.b64_to_dict(rk)
-            # We would use this dict to load the most recent model. 
+            # We would use this dict to load the most recent model.
             logger.info(f"Processing Keys: {rk}", enqueue=True)
 
-    def run(self):
+    def _run(self):
         while True:
             self.background_operation()
             time.sleep(self.interval)
 
     def save(self):
-        raise NotImplementedError("Ensure to use this function to save the model")
-    
+        raise NotImplementedError(
+            "Ensure to use this function to save the model")
+
     def load(self):
-        raise NotImplementedError("Ensure to implement this function to load the models you have")
+        raise NotImplementedError(
+            "Ensure to implement this function to load the models you have")
+
 
 if __name__ == "__main__":
     memop = MemoizeAndOperate(interval=0.07)

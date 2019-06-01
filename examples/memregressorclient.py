@@ -53,7 +53,7 @@ if __name__ == "__main__":
     }
 
     start = time.time()
-    for _ in range(5):
+    for _ in range(20):
     
         X, y = make_regression(n_features=4, n_samples=1000, random_state=1)
         splitsX = np.split(X, 4)

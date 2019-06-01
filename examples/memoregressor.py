@@ -1,110 +1,113 @@
-import time
+import sys
+import ast
 import uuid
-import random
-import numpy as np
-from copy import copy
+import time
+import base64
+import threading
+from funguauniverse import StoreItem
+from loguru import logger
+from spaceman import Spaceman
+from hashlib import sha1
+config = {
+    "handlers": [
+        {"sink": sys.stdout, "format": "{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}"},
+    ],
+    "extra": {"user": "someone"}
+}
+logger.configure(**config)
 
-from funguauniverse import MemoizeAndOperate
-from funguauniverse import start_service
-from sklearn.linear_model import PassiveAggressiveRegressor
 
-from sklearn.datasets import make_regression
-
-
-class MemoryPassiveRegressor(MemoizeAndOperate):
-    """ A class for online learning using the passive aggressive regressor """
+class MemoizeAndOperate(StoreItem, threading.Thread):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        threading.Thread.__init__(self)
+        self.lock = threading.Lock()
+        self.interval = kwargs.get("interval", 3)
+        self.reg_dict = {}
+        self.timestamp_record = {}
+        self.query_lookup_table = {}
+        self.bgprocess = threading.Thread(
+            target=self._run, name='bgprocess', daemon=True)
+        self.bgprocess.start()
+        self.space = Spaceman()
+        self.daemon = True
 
-    def initialize(self, query:dict, **kwargs):
-        existing_model = self.load(query)
-        if existing_model is None:
-            self.set_item(query, PassiveAggressiveRegressor(
-                max_iter=1000), overwrite=False)
-        else:
-            self.set_item(query, existing_model, overwrite=False)
-    
-    def check_and_load(self, query):
-        q = copy(query)
-        _hash = self.hash_dict(q)
-        _keys = list(self.reg_dict.keys())
-        if _hash not in _keys:
-            self.initialize(query)
+    def filter_query(self, query: dict):
+        assert query.get("type") is not None
+        assert isinstance(query['type'], str)
 
-    def train(self, query: dict, X, y, **kwargs):
-        # Partially train the passive aggressive regressor
-        # print(self.hash_dict)
-        self.check_and_load(query)
-        try:
-            regressor = self.get_item(query)
-            regressor.partial_fit(X, y)
-            self.set_item(query, regressor, overwrite=True)
-            return "DONE"
-        except Exception as e:
-            print(str(e))
-            pass
-        
-    
-    def predict(self, query:dict, X, **kwargs):
-        # Predict the score of the regression algorithm for the data `x`
-        print(self.query_lookup_table)
-        self.check_and_load(query)
-        try:
-            regressor = self.get_item(query)
-            prediction = regressor.predict(X)
-            return prediction
-        except Exception as e:
-            return []
-        
-    def score(self, query, X, y, **kwargs):
-        # Generate the score for the model in X and Y
-        # print(self.query_lookup_table)
-        self.check_and_load(query)
-        try:
-            regressor = self.get_item(query)
-            score = regressor.score(X, y)
-            return score
-        except Exception as e:
-            print(str(e))
-            return 0.0
-    
+    def set_item(self, query: dict, item, **kwargs):
+        self.filter_query(query)
+
+        with self.lock:
+            is_overwrite = kwargs.get("overwrite", False)
+            storage_string = self.hash_dict(query)
+            # Add feature to check if we should overwrite
+            if is_overwrite == True:
+                self.reg_dict[storage_string] = item
+                return
+
+            if self.reg_dict.get(storage_string, None) is None:
+                self.reg_dict[storage_string] = item
+
+    def get_item(self, query_dict: dict):
+        self.filter_query(query_dict)
+        with self.lock:
+            storage_string = self.hash_dict(query_dict)
+            item = self.reg_dict.get(storage_string, None)
+            return item
+
+    def hash_dict(self, query_dict: dict):
+        # Updated hash for consistency between runs
+        qhash = sha1(repr(sorted(query_dict.items())).encode()).hexdigest()
+        self.query_lookup_table[qhash] = query_dict
+        return qhash
+
+    def query_by_hash(self, _hash):
+        query_dict = self.query_lookup_table.get(_hash, None)
+        return query_dict
+
+    def dict_to_b64(self, query_dict: dict):
+        qstring = str(query_dict)
+        encoded = qstring.encode()
+        byteb64 = base64.b64encode(encoded)
+        return byteb64.decode("utf-8")
+
+    def b64_to_dict(self, bstring: str):
+        bstring_decoded = bstring.encode()
+        decoded_base = base64.b64decode(bstring_decoded)
+        decoded_string = decoded_base.decode()
+        return ast.literal_eval(decoded_string)
+
     def background_operation(self):
         reg_keys = list(self.reg_dict.keys())
         for rk in reg_keys:
             latest_update = time.time()
-            
-            hash_query = self.query_by_hash(rk)
-            self.save(hash_query, self.reg_dict[rk])
-            time.sleep(0.05)
-    
-    # TODO: Add prune example
+            # self.timestamp_record[rk] = latest_update
+            b64key = self.b64_to_dict(rk)
+            # We would use this dict to load the most recent model.
+            logger.info(f"Processing Keys: {rk}", enqueue=True)
 
-    # def prune(self):
-    #     # Prune the latest keys
-    #     self.timestamp_record
-    #     pass
+    def _run(self):
+        while True:
+            self.background_operation()
+            time.sleep(self.interval)
 
-    def save(self, query:dict, obj):
-        q = copy(query)
-        with self.space as space:
-            space.store(obj, query=q, current_time=True)
+    def save(self):
+        raise NotImplementedError(
+            "Ensure to use this function to save the model")
 
-    def load(self, query:dict):
-        q = copy(query)
-        try:
-            with self.space as space:
-                item = space.load(query=q)
-                return item
-        except Exception:
-            return None
-        
-
+    def load(self):
+        raise NotImplementedError(
+            "Ensure to implement this function to load the models you have")
 
 
 if __name__ == "__main__":
-    memes = MemoryPassiveRegressor()
-    print(memes)
-    start_service(memes, "localhost", 5581)
-
-
-
+    memop = MemoizeAndOperate(interval=0.07)
+    latest_hex = uuid.uuid4().hex
+    for i in range(100):
+        memop.set_item({"eid": latest_hex}, 1)
+        latest = memop.get_item({"eid": latest_hex})
+        latest += 1
+        memop.set_item({"eid": latest_hex}, latest, overwrite=True)
+        print(latest)
+        time.sleep(0.01)
