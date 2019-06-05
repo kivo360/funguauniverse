@@ -23,13 +23,14 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         self.lock = threading.Lock()
         self.interval = kwargs.get("interval", 3)
         self.mongo_host = kwargs.get("mongo_host")
+        print(self.mongo_host)
         self.reg_dict = {}
         self.timestamp_record = {}
         self.query_lookup_table = {}
         self.bgprocess = threading.Thread(
             target=self._run, name='bgprocess', daemon=True)
         self.bgprocess.start()
-        self.space = Spaceman()
+        self.space = Spaceman(mongo_host=self.mongo_host)
         self.daemon = True
 
     def filter_query(self, query: dict):

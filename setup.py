@@ -63,13 +63,13 @@ class UploadCommand(Command):
 
     def run(self):
         try:
-            self.status("Removing previous builds…")
+            self.status("Removing previous builds...")
             rmtree(os.path.join(here, "dist"))
         except FileNotFoundError:
             pass
-        self.status("Building Source distribution…")
+        self.status("Building Source distribution...")
         os.system("{0} setup.py sdist bdist_wheel".format(sys.executable))
-        self.status("Uploading the package to PyPi via Twine…")
+        self.status("Uploading the package to PyPi via Twine...")
         os.system("sudo twine upload dist/*")
         sys.exit()
 
@@ -77,7 +77,7 @@ class UploadCommand(Command):
 
 setup(
     name="funguauniverse",
-    version="0.1.4",
+    version="0.1.6",
     author="Kevin Hill",
     author_email="kah.kevin.hill@gmail.com",
     description="A set of class tools to run the Funguana Pipeline. Many irrelelavent parts",
