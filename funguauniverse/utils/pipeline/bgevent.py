@@ -23,7 +23,6 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         self.lock = threading.Lock()
         self.interval = kwargs.get("interval", 3)
         self.mongo_host = kwargs.get("mongo_host")
-        print(self.mongo_host)
         self.reg_dict = {}
         self.timestamp_record = {}
         self.query_lookup_table = {}

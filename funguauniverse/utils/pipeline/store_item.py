@@ -8,7 +8,7 @@ class StoreItem(object):
         Save and load an item with dynamic programming
     """
     def __init__(self, *args, **kwargs):
-        self.features = Features()
+        pass
 
 
     def save(self, id, obj):
