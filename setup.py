@@ -77,7 +77,7 @@ class UploadCommand(Command):
 
 setup(
     name="funguauniverse",
-    version="0.1.8",
+    version="0.1.9",
     author="Kevin Hill",
     author_email="kah.kevin.hill@gmail.com",
     description="A set of class tools to run the Funguana Pipeline. Many irrelelavent parts",

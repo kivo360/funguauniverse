@@ -23,6 +23,7 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         self.lock = threading.Lock()
         self.interval = kwargs.get("interval", 3)
         self.mongo_host = kwargs.get("mongo_host")
+        self.is_lock = kwargs.get("is_lock", True)
         self.reg_dict = {}
         self.timestamp_record = {}
         self.query_lookup_table = {}
@@ -38,8 +39,18 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
 
     def set_item(self, query: dict, item, **kwargs):
         self.filter_query(query)
+        if self.is_lock == True:
+            with self.lock:
+                is_overwrite = kwargs.get("overwrite", False)
+                storage_string = self.hash_dict(query)
+                # Add feature to check if we should overwrite
+                if is_overwrite == True:
+                    self.reg_dict[storage_string] = item
+                    return
 
-        with self.lock:
+                if self.reg_dict.get(storage_string, None) is None:
+                    self.reg_dict[storage_string] = item
+        else:
             is_overwrite = kwargs.get("overwrite", False)
             storage_string = self.hash_dict(query)
             # Add feature to check if we should overwrite
@@ -52,7 +63,12 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
 
     def get_item(self, query_dict: dict):
         self.filter_query(query_dict)
-        with self.lock:
+        if self.is_lock == True:
+            with self.lock:
+                storage_string = self.hash_dict(query_dict)
+                item = self.reg_dict.get(storage_string, None)
+                return item
+        else:
             storage_string = self.hash_dict(query_dict)
             item = self.reg_dict.get(storage_string, None)
             return item

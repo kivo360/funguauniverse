@@ -1,6 +1,3 @@
-from featman import Features
-
-
 class StoreItem(object):
     """
         # StoreItem
