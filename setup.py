@@ -77,7 +77,7 @@ class UploadCommand(Command):
 
 setup(
     name="funguauniverse",
-    version="0.1.9",
+    version="0.2",
     author="Kevin Hill",
     author_email="kah.kevin.hill@gmail.com",
     description="A set of class tools to run the Funguana Pipeline. Many irrelelavent parts",
@@ -85,7 +85,7 @@ setup(
     long_description_content_type="text/markdown",
     py_modules=["funguauniverse"],
     install_requires=['pytest', 'scipy', 'numpy', 'pandas', 'dask[complete]',
-                      'ta-lib', 'loguru', 'spaceman', 'prometheus-client'],
+                      'ta-lib', 'loguru', 'spaceman', 'prometheus-client', 'requests-futures', 'requests-futures'],
     packages=find_packages(exclude=['scripts']),
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -81,11 +81,18 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
     def background_operation(self):
         reg_keys = list(self.reg_dict.keys())
         for rk in reg_keys:
-            latest_update = time.time()
-            # self.timestamp_record[rk] = latest_update
-            b64key = self.b64_to_dict(rk)
-            # We would use this dict to load the most recent model.
-            logger.info(f"Processing Keys: {rk}", enqueue=True)
+            current_time = time.time()
+            
+            # last_update = self.timestamp_record[rk]
+            # if last_update is None:
+            #     logger.debug("Skipping prunning")
+            # else:
+            #     prune_time = last_update + 30
+            #     if current_time < prune_time:
+            #         del self.reg_dict[rk]
+            # b64key = self.b64_to_dict(rk)
+            # # We would use this dict to load the most recent model.
+            # logger.info(f"Processing Keys: {rk}", enqueue=True)
 
     def _run(self):
         while True:

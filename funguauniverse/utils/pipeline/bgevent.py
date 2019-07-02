@@ -67,10 +67,14 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
             with self.lock:
                 storage_string = self.hash_dict(query_dict)
                 item = self.reg_dict.get(storage_string, None)
+                # Set that an item was touched
+
+                self.timestamp_record[storage_string] = time.time()
                 return item
         else:
             storage_string = self.hash_dict(query_dict)
             item = self.reg_dict.get(storage_string, None)
+            self.timestamp_record[storage_string] = time.time()
             return item
 
     def hash_dict(self, query_dict: dict):
