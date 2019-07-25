@@ -13,8 +13,7 @@ class ServiceClient(object):
         self.host = kwargs.get("address", "localhost")
         self.port = kwargs.get("port", 5581)
         self._address = f"http://{self.host}:{self.port}"
-        self.session = FuturesSession(executor=ProcessPoolExecutor(max_workers=10),
-                         session=Session())
+        self.session = FuturesSession(max_workers=1000)
 
     def _send(self, data, blocking=True):
         payload = pickle.dumps(data)
