@@ -68,6 +68,7 @@ class RedisMemory(MemoryInterface):
 
 class RemoteMemory(MemoryInterface):
     def __init__(self, remote_obj, *args, **kwargs):
+        # The ray remote object should be a memory type. 
         self.ray_remote = remote_obj.remote()
     
     def save(self, k, v, overwrite=False):
