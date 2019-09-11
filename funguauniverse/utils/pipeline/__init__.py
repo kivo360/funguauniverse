@@ -4,3 +4,4 @@ from .service import BaseService
 from .pipenode import PNode
 from .store_item import StoreItem
 from .singleton import Singleton
+from .memory import LocalMemory, RedisMemory
