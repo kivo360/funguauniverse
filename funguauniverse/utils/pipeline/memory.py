@@ -16,6 +16,13 @@ class MemoryInterface(ABC):
     
     def get_latest_time(self, k):
         raise NotImplementedError(f"You need to be able to get the latest time of the given {k}")
+    
+    def set_query_by_hash(self, k, query):
+        raise NotImplementedError("You need to set an access query by hash")
+    
+
+    def get_query_by_hash(self, k):
+        raise NotImplementedError("You need to get an access query by hash")
 
     def get_keys(self):
         raise NotImplementedError("get_keys must be implemented")
@@ -24,6 +31,7 @@ class LocalMemory(MemoryInterface):
     def __init__(self, *args, **kwargs):
         self.local_dict = {}
         self.timestamp_dict = {}
+        self.query_lookup_table = {}
 
     def save(self, k, v, overwrite=False):
         is_exist = self.local_dict.get(k, None)
@@ -59,8 +67,17 @@ class LocalMemory(MemoryInterface):
             del self.timestamp_dict[k]
         raise AttributeError(f"The key {k} doesn't exist")
 
+
     def get_keys(self):
         return list(self.local_dict.keys())
+
+
+    def set_query_by_hash(self, k, query:dict):
+        self.query_lookup_table[k] = query
+    
+    
+    def get_query_by_hash(self, k):
+        self.query_lookup_table.get(k, None)
 
 class RedisMemory(MemoryInterface):
     def __init__(self, redis_instance:redis.Redis, list_key_name="key_lists", *args, **kwargs):
@@ -103,6 +120,12 @@ class RedisMemory(MemoryInterface):
         if item is None:
             raise AttributeError("The item does not exist in redis")
         return item
+    
+    def set_query_by_hash(self, k, query:dict):
+        self.redis_instance.set(f"{k}:query", query)
+    
+    def get_query_by_hash(self, k):
+        return self.redis_instance.get(k)
 
 class RemoteMemory(MemoryInterface):
     def __init__(self, remote_obj, *args, **kwargs):
@@ -125,6 +148,11 @@ class RemoteMemory(MemoryInterface):
     def get_latest_time(self, key):
         return ray.get(self.ray_remote.get_latest_time.remote())
 
+    def set_query_by_hash(self, k, query:dict):
+        ray.get(self.ray_remote.set_query_by_hash.remote(k, query))
+    
+    def get_query_by_hash(self, k):
+        return ray.get(self.ray_remote.get_query_by_hash.remote())
 
 if __name__ == "__main__":
     pass

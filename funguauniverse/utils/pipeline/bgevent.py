@@ -29,7 +29,6 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         # Create a local memory set. 
         # This will be memory (self.reg_dict and self.timestamp_record replacement) until it's overwritten
         self.memory = LocalMemory()
-        self.timestamp_record = {}
         self.query_lookup_table = {}
         self.bgprocess = threading.Thread(
             target=self._run, name='bgprocess', daemon=True)
@@ -49,12 +48,6 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
                 storage_string = self.hash_dict(query)
                 # Add feature to check if we should overwrite
                 self.memory.save(storage_string, item, overwrite=is_overwrite)
-                # if is_overwrite == True:
-                #     self.reg_dict[storage_string] = item
-                #     return
-
-                # if self.reg_dict.get(storage_string, None) is None:
-                #     self.reg_dict[storage_string] = item
         else:
             is_overwrite = kwargs.get("overwrite", False)
             storage_string = self.hash_dict(query)
@@ -65,25 +58,26 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         if self.is_lock == True:
             with self.lock:
                 storage_string = self.hash_dict(query_dict)
-                item = self.reg_dict.get(storage_string, None)
-                # Set that an item was touched
+                return self.memory.load(storage_string)
+                # item = self.reg_dict.get(storage_string, None)
+                # # Set that an item was touched
 
-                self.timestamp_record[storage_string] = time.time()
-                return item
+                # self.timestamp_record[storage_string] = time.time()
+                # return item
         else:
             storage_string = self.hash_dict(query_dict)
-            item = self.reg_dict.get(storage_string, None)
-            self.timestamp_record[storage_string] = time.time()
-            return item
+            return self.memory.load(storage_string)
 
     def hash_dict(self, query_dict: dict):
         # Updated hash for consistency between runs
         qhash = sha1(repr(sorted(query_dict.items())).encode()).hexdigest()
-        self.query_lookup_table[qhash] = query_dict
+        # One day I shall replace this. Today is not that day. ... Then again. Why not?
+        # it would simpily be self.memory.set_query_by_hash(key, value)
+        self.memory.set_query_by_hash(qhash, query_dict)
         return qhash
 
     def query_by_hash(self, _hash):
-        query_dict = self.query_lookup_table.get(_hash, None)
+        query_dict = self.memory.get_query_by_hash(_hash)
         return query_dict
 
     def dict_to_b64(self, query_dict: dict):
