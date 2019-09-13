@@ -5,6 +5,7 @@ import time
 import base64
 import threading
 from funguauniverse import StoreItem
+from funguauniverse import LocalMemory
 from loguru import logger
 from spaceman import Spaceman
 from hashlib import sha1
@@ -25,6 +26,9 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         self.mongo_host = kwargs.get("mongo_host")
         self.is_lock = kwargs.get("is_lock", True)
         self.reg_dict = {}
+        # Create a local memory set. 
+        # This will be memory (self.reg_dict and self.timestamp_record replacement) until it's overwritten
+        self.memory = LocalMemory()
         self.timestamp_record = {}
         self.query_lookup_table = {}
         self.bgprocess = threading.Thread(
@@ -44,22 +48,17 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
                 is_overwrite = kwargs.get("overwrite", False)
                 storage_string = self.hash_dict(query)
                 # Add feature to check if we should overwrite
-                if is_overwrite == True:
-                    self.reg_dict[storage_string] = item
-                    return
+                self.memory.save(storage_string, item, overwrite=is_overwrite)
+                # if is_overwrite == True:
+                #     self.reg_dict[storage_string] = item
+                #     return
 
-                if self.reg_dict.get(storage_string, None) is None:
-                    self.reg_dict[storage_string] = item
+                # if self.reg_dict.get(storage_string, None) is None:
+                #     self.reg_dict[storage_string] = item
         else:
             is_overwrite = kwargs.get("overwrite", False)
             storage_string = self.hash_dict(query)
-            # Add feature to check if we should overwrite
-            if is_overwrite == True:
-                self.reg_dict[storage_string] = item
-                return
-
-            if self.reg_dict.get(storage_string, None) is None:
-                self.reg_dict[storage_string] = item
+            self.memory.save(storage_string, item, overwrite=is_overwrite)
 
     def get_item(self, query_dict: dict):
         self.filter_query(query_dict)

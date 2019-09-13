@@ -17,6 +17,7 @@ requests-futures = "*"
 influxdb = "*"
 redis = "*"
 ray = "*"
+maya = "*"
 
 [dev-packages]
 "autopep8" = "*"
