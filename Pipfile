@@ -18,6 +18,7 @@ influxdb = "*"
 redis = "*"
 ray = "*"
 maya = "*"
+dask = {extras = ["dataframe"], version = "*"}
 
 [dev-packages]
 "autopep8" = "*"

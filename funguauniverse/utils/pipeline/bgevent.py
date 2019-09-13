@@ -5,7 +5,7 @@ import time
 import base64
 import threading
 from funguauniverse import StoreItem
-from funguauniverse import LocalMemory
+from funguauniverse.utils.pipeline import LocalMemory
 from loguru import logger
 from spaceman import Spaceman
 from hashlib import sha1
@@ -28,7 +28,7 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         self.reg_dict = {}
         # Create a local memory set. 
         # This will be memory (self.reg_dict and self.timestamp_record replacement) until it's overwritten
-        self.memory = LocalMemory()
+        self.memory = kwargs.get("memory", LocalMemory())
         self.query_lookup_table = {}
         self.bgprocess = threading.Thread(
             target=self._run, name='bgprocess', daemon=True)
@@ -72,7 +72,6 @@ class MemoizeAndOperate(StoreItem, threading.Thread):
         # Updated hash for consistency between runs
         qhash = sha1(repr(sorted(query_dict.items())).encode()).hexdigest()
         # One day I shall replace this. Today is not that day. ... Then again. Why not?
-        # it would simpily be self.memory.set_query_by_hash(key, value)
         self.memory.set_query_by_hash(qhash, query_dict)
         return qhash
 

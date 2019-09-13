@@ -112,9 +112,9 @@ if __name__ == "__main__":
     memop = MemoizeAndOperate(interval=0.07)
     latest_hex = uuid.uuid4().hex
     for i in range(100):
-        memop.set_item({"eid": latest_hex}, 1)
-        latest = memop.get_item({"eid": latest_hex})
+        memop.set_item({"type":"memory", "eid": latest_hex}, 1)
+        latest = memop.get_item({"type":"memory", "eid": latest_hex})
         latest += 1
-        memop.set_item({"eid": latest_hex}, latest, overwrite=True)
+        memop.set_item({"type":"memory", "eid": latest_hex}, latest, overwrite=True)
         print(latest)
         time.sleep(0.01)

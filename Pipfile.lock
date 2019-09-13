@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3b315edba5126b7a901f49136c6eef61b45abebdbba5413784f15ff295b9b49b"
+            "sha256": "01108c171acd5ef7a8a0cec3eb05110b1f52e39f6b92116123676cd506e7c8f3"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -117,12 +117,14 @@
         },
         "dask": {
             "extras": [
-                "complete"
+                "complete",
+                "dataframe"
             ],
             "hashes": [
                 "sha256:63a0f77366108cdbf9350cf368042d6f5d8c9df581b9b17781f0a603e23ead6c",
                 "sha256:fdf2acc15f0526bc36512b057027bffcefdf3bca335278c8b98ef17d22f7e646"
             ],
+            "index": "pypi",
             "version": "==2.3.0"
         },
         "dateparser": {
