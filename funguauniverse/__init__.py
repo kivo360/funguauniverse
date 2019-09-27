@@ -6,6 +6,8 @@ from .utils.pipeline.store_item import StoreItem
 from .utils.pipeline.singleton import Singleton
 from .utils.pipeline.bgevent import MemoizeAndOperate
 from .utils.pipeline.memory import MemoryInterface, LocalMemory, RedisMemory, RemoteMemory
+from .utils.pipeline.supernode import SuperPNode
+
 
 from .utils.web.serviceclient import ServiceClient
 from .utils.web.background_service import start_service
