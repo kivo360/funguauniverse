@@ -183,6 +183,47 @@ class MemoryService(object):
                 "data": {}
             }
 
+
+
+
+
+    def add_counterfactual(self, covariance:dict, treatment:dict, coin:str, live=False, season=None, episode=None):
+        """ 
+            # ADD COUNTERFACTUAL, GET REGRET
+
+            Add counterfactual information and get the regret reward function as a response. 
+            The regret response will be the upfront reward for the user to take ahold of.
+        """
+        json_dict = {}
+        json_dict["covariance"] = covariance
+        json_dict["covariance_norm"] = {}
+        json_dict["treatment"] = treatment
+        json_dict["bartime"] = time.time()
+        json_dict["spec"] = {
+            "pair": coin,
+            "season": season,
+            "episode": episode,
+            "live": live
+        }
+        
+        req = self.session.post(f"{self.call_variable}/update/regret", json=json_dict).result().json()
+        return req
+    
+    def add_outcome(self, sortino:list, sharpe:list, coin:str, live=False, season=None, episode=None):
+        """ Add the information necessary to get the reward we want. Right now we're adding the sortino and sharpe ratio. """
+        json_dict = {}
+        json_dict["sortino"] = sortino
+        json_dict["sharpe"] = sharpe
+        json_dict["spec"] = {
+            "pair": coin,
+            "season": season,
+            "episode": episode,
+            "live": live
+        }
+
+        req = self.session.post(f"{self.call_variable}/update/reward", json=json_dict).result().json()
+        return req
+
     def _send(self, call_info: dict):
         call = call_info.get("call")
         data = call_info.get("data")

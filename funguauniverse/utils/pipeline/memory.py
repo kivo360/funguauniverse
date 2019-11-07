@@ -77,7 +77,7 @@ class LocalMemory(MemoryInterface):
     
     
     def get_query_by_hash(self, k):
-        self.query_lookup_table.get(k, None)
+        return self.query_lookup_table.get(k, None)
 
 class RedisMemory(MemoryInterface):
     def __init__(self, redis_instance:redis.Redis, list_key_name="key_lists", *args, **kwargs):
